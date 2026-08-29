@@ -1,0 +1,70 @@
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id        String   @id @default(cuid())
+  name      String
+  cnic      String   @unique
+  email     String   @unique
+  password  String
+  role      String   @default("STUDENT") // STUDENT or ADMIN
+  status    String   @default("PENDING") // PENDING, APPROVED, REJECTED, SUSPENDED
+  createdAt DateTime @default(now())
+  
+  attempts  QuizAttempt[]
+  strikes   Strike[]
+}
+
+model Quiz {
+  id        String   @id @default(cuid())
+  title     String
+  subject   String
+  topic     String
+  grade     String
+  difficulty String
+  createdAt DateTime @default(now())
+  
+  questions Question[]
+  attempts  QuizAttempt[]
+}
+
+model Question {
+  id        String   @id @default(cuid())
+  quizId    String
+  text      String
+  optionA   String
+  optionB   String
+  optionC   String
+  optionD   String
+  correct   String   // 'A', 'B', 'C', 'D'
+  explanation String?
+  
+  quiz      Quiz     @relation(fields: [quizId], references: [id])
+}
+
+model QuizAttempt {
+  id        String   @id @default(cuid())
+  userId    String
+  quizId    String
+  score     Int      @default(0)
+  completed Boolean  @default(false)
+  createdAt DateTime @default(now())
+  
+  user      User     @relation(fields: [userId], references: [id])
+  quiz      Quiz     @relation(fields: [quizId], references: [id])
+}
+
+model Strike {
+  id        String   @id @default(cuid())
+  userId    String
+  reason    String
+  createdAt DateTime @default(now())
+  
+  user      User     @relation(fields: [userId], references: [id])
+}
